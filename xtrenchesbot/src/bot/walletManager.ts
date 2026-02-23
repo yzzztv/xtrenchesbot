@@ -217,12 +217,6 @@ export async function processExportPin(ctx: Context, pin: string): Promise<boole
       walletExportSuccess(privateKey),
       { parse_mode: 'Markdown' }
     );
-Your Private Key:
-\`${privateKey}\`
-
-Save it securely NOW.`,
-      { parse_mode: 'Markdown' }
-    );
     
     // Clear from memory
     privateKey = '';
@@ -231,9 +225,9 @@ Save it securely NOW.`,
     setTimeout(async () => {
       try {
         await ctx.telegram.deleteMessage(ctx.chat!.id, keyMessage.message_id);
-        await ctx.reply('Private key message auto-deleted for security.');
+        await ctx.reply(walletExportAutoDeleted());
       } catch {
-        await ctx.reply('Could not auto-delete. Please delete the key message manually for security.');
+        await ctx.reply(walletExportDeleteFailed());
       }
     }, 30000);
     
@@ -241,7 +235,7 @@ Save it securely NOW.`,
     
   } catch (error) {
     console.error('[WalletManager] Export PIN error:', error);
-    await ctx.reply('Export failed. Try again.');
+    await ctx.reply(errorMessage('Export failed.'));
     return true;
   }
 }
