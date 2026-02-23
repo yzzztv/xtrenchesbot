@@ -481,19 +481,19 @@ export async function handleRemoveWalletConfirm(ctx: Context, walletId: string):
     
     if (success) {
       await ctx.editMessageText(
-        'Wallet removed successfully.',
+        walletRemovedMessage(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
     } else {
       await ctx.editMessageText(
-        'Failed to remove wallet.',
+        errorMessage('Failed to remove wallet.'),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
     }
     
   } catch (error) {
     console.error('[WalletManager] Remove confirm error:', error);
-    await ctx.answerCbQuery('Failed to remove wallet.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
