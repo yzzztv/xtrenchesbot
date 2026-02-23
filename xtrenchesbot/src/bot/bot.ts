@@ -15,9 +15,11 @@ import {
   handleTp,
   handleSl,
   processWithdrawalPin,
-  hasPendingWithdrawal
+  hasPendingWithdrawal,
+  handleRecordPosition
 } from './commands';
 import { findUserByTelegramId } from '../database';
+import { isValidSolanaAddress } from '../wallet';
 
 let bot: Telegraf | null = null;
 
@@ -64,12 +66,12 @@ export async function startBot(): Promise<Telegraf> {
       return;
     }
     
-    // Handle direct CA paste (attempt scan)
+    // Handle direct CA paste - record position (NO image generation)
     if (text.length >= 32 && text.length <= 64 && !text.includes(' ')) {
-      // Likely a token address, run scan
-      const scanCtx = ctx as any;
-      scanCtx.message.text = `/scan ${text}`;
-      await handleScan(scanCtx);
+      // Validate as Solana address
+      if (isValidSolanaAddress(text)) {
+        await handleRecordPosition(ctx, text);
+      }
       return;
     }
   });
