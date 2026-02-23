@@ -14,6 +14,24 @@ import {
 } from '../database';
 import { generateWallet, getBalance } from '../wallet';
 import { decryptPrivateKey, verifyPin } from '../security';
+import {
+  walletManagerMessage,
+  walletCreatedMessage,
+  walletSwitchedMessage,
+  walletRemovedMessage,
+  walletLimitMessage,
+  walletExportPinPrompt,
+  walletExportSuccess,
+  walletExportAutoDeleted,
+  walletExportDeleteFailed,
+  walletNoPinSet,
+  walletRemoveConfirm,
+  walletCannotRemoveLast,
+  notRegisteredMessage,
+  errorMessage,
+  pinIncorrect,
+  maskAddress,
+} from './messageTemplates';
 
 // Callback data constants for wallet manager
 export const WALLET_CALLBACK = {
