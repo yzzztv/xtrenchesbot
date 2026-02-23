@@ -1,5 +1,5 @@
 import { Context } from 'telegraf';
-import { findUserByTelegramId, getOpenTrades } from '../../database';
+import { findUserByTelegramId, getOpenTrades, getTradeByToken } from '../../database';
 import { isValidSolanaAddress } from '../../wallet';
 import { getTokenData } from '../../services';
 import { calculateEntryScore, formatScoreMessage } from '../../scoring';
@@ -60,10 +60,27 @@ export async function handleScan(ctx: Context): Promise<void> {
 
 /**
  * Handle /pnl command
+ * Format: /pnl <CA>
  */
 export async function handlePnl(ctx: Context): Promise<void> {
   const telegramId = ctx.from?.id.toString();
   if (!telegramId) return;
+  
+  const text = (ctx.message as any)?.text || '';
+  const parts = text.split(/\s+/);
+  
+  // Require CA parameter
+  if (parts.length < 2) {
+    await ctx.reply('Usage: /pnl <token_address>');
+    return;
+  }
+  
+  const tokenAddress = parts[1];
+  
+  if (!isValidSolanaAddress(tokenAddress)) {
+    await ctx.reply('Invalid token address.');
+    return;
+  }
   
   try {
     const user = await findUserByTelegramId(telegramId);
@@ -72,19 +89,19 @@ export async function handlePnl(ctx: Context): Promise<void> {
       return;
     }
     
-    const trades = await getOpenTrades(user.id);
+    // Check for active position for this specific CA
+    const trade = await getTradeByToken(user.id, tokenAddress);
     
-    if (trades.length === 0) {
-      await ctx.reply('No open positions for PNL card.\n\nEnter a trade first.');
+    if (!trade) {
+      await ctx.reply('No active position found for this contract address.');
       return;
     }
     
-    // Use first open trade for PNL card
-    const trade = trades[0];
-    const tokenData = await getTokenData(trade.token_address);
+    // Fetch current token data
+    const tokenData = await getTokenData(tokenAddress);
     
     if (!tokenData) {
-      await ctx.reply('Failed to fetch token data.');
+      await ctx.reply('Unable to fetch current price. Try again later.');
       return;
     }
     
@@ -92,15 +109,31 @@ export async function handlePnl(ctx: Context): Promise<void> {
     const entryPrice = parseFloat(trade.entry_price);
     const amountSol = parseFloat(trade.amount_sol);
     
+    if (currentPrice <= 0) {
+      await ctx.reply('Unable to fetch current price. Try again later.');
+      return;
+    }
+    
+    // Calculate PNL
     let pnlPercent = 0;
     let pnlSol = 0;
     
-    if (entryPrice > 0 && currentPrice > 0) {
+    if (entryPrice > 0) {
       pnlPercent = ((currentPrice - entryPrice) / entryPrice) * 100;
-      pnlSol = amountSol * (pnlPercent / 100);
+      pnlSol = amountSol > 0 ? amountSol * (pnlPercent / 100) : 0;
     }
     
-    await ctx.reply('Generating PNL card...');
+    // Determine status label
+    let statusLabel: string;
+    if (pnlPercent > 0.2) {
+      statusLabel = 'PROFIT';
+    } else if (pnlPercent < -0.2) {
+      statusLabel = 'LOSS';
+    } else {
+      statusLabel = 'NEUTRAL';
+    }
+    
+    await ctx.reply(`Generating PNL card... ${statusLabel}`);
     
     // Generate PNL card
     const cardBuffer = await generatePnlCard({
