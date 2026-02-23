@@ -22,16 +22,27 @@ import {
   CALLBACK,
   sendMainMenu,
   handleCheckPnlButton,
-  handleMyWalletButton,
-  handleAddWalletButton,
   handleMyPositionsButton,
   handleSettingsButton,
-  handleExportKeyButton,
-  handleRemoveWalletButton,
   handleBackMainButton,
   isAwaitingPnlInput,
   clearPnlInputState,
 } from './menu';
+import {
+  WALLET_CALLBACK,
+  handleWalletManagerButton,
+  handleExportKeyButton,
+  handleAddWalletButton,
+  handleAddWalletConfirm,
+  handleSetActiveWallet,
+  handleRemoveWalletButton,
+  handleRemoveWalletSelect,
+  handleRemoveWalletConfirm,
+  handleRemoveCancel,
+  isAwaitingExportPin,
+  clearExportPinState,
+  processExportPin,
+} from './walletManager';
 import { findUserByTelegramId } from '../database';
 import { isValidSolanaAddress } from '../wallet';
 
