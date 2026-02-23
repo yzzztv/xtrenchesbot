@@ -1,6 +1,5 @@
 import { Context, Markup } from 'telegraf';
 import { findUserByTelegramId, getOpenTrades } from '../database';
-import { getBalance } from '../wallet';
 import { getTokenData } from '../services';
 
 const BOT_NAME = 'XTRENCHESBOT';
@@ -9,12 +8,9 @@ const BOT_NAME = 'XTRENCHESBOT';
 export const CALLBACK = {
   CHECK_PNL: 'menu_check_pnl',
   MY_WALLET: 'menu_my_wallet',
-  ADD_WALLET: 'menu_add_wallet',
   MY_POSITIONS: 'menu_my_positions',
   SETTINGS: 'menu_settings',
   BACK_MAIN: 'menu_back_main',
-  EXPORT_KEY: 'wallet_export_key',
-  REMOVE_WALLET: 'wallet_remove',
 } as const;
 
 // Track users waiting for PNL CA input
@@ -40,10 +36,7 @@ export function clearPnlInputState(telegramId: string): void {
 export function getMainMenuKeyboard() {
   return Markup.inlineKeyboard([
     [Markup.button.callback('Check PNL', CALLBACK.CHECK_PNL)],
-    [
-      Markup.button.callback('My Wallet', CALLBACK.MY_WALLET),
-      Markup.button.callback('Add Wallet', CALLBACK.ADD_WALLET),
-    ],
+    [Markup.button.callback('My Wallet', CALLBACK.MY_WALLET)],
     [
       Markup.button.callback('My Positions', CALLBACK.MY_POSITIONS),
       Markup.button.callback('Settings', CALLBACK.SETTINGS),
