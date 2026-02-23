@@ -429,7 +429,7 @@ export async function handleRemoveWalletSelect(ctx: Context, walletId: string): 
     const wallet = await getWalletById(walletId, user.id);
     if (!wallet) {
       await ctx.editMessageText(
-        'Wallet not found.',
+        errorMessage('Wallet not found.'),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -439,7 +439,7 @@ export async function handleRemoveWalletSelect(ctx: Context, walletId: string): 
     pendingRemoval.set(telegramId, walletId);
     
     await ctx.editMessageText(
-      `Are you sure?\n\nWallet: ${maskPublicKey(wallet.public_key)}\n${wallet.is_active ? '(This is your ACTIVE wallet)\n' : ''}\nThis action cannot be undone.`,
+      walletRemoveConfirm(maskAddress(wallet.public_key), wallet.is_active),
       Markup.inlineKeyboard([
         [Markup.button.callback('Confirm Delete', `${WALLET_CALLBACK.REMOVE_CONFIRM}${walletId}`)],
         [Markup.button.callback('Cancel', WALLET_CALLBACK.REMOVE_CANCEL)],
@@ -448,7 +448,7 @@ export async function handleRemoveWalletSelect(ctx: Context, walletId: string): 
     
   } catch (error) {
     console.error('[WalletManager] Remove select error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -469,7 +469,7 @@ export async function handleRemoveWalletConfirm(ctx: Context, walletId: string):
     const pendingId = pendingRemoval.get(telegramId);
     if (pendingId !== walletId) {
       await ctx.editMessageText(
-        'Invalid request.',
+        errorMessage('Invalid request.'),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
