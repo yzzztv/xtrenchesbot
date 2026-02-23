@@ -49,8 +49,8 @@ export async function startBot(): Promise<Telegraf> {
     ctx.reply('Something went wrong. Try again.').catch(() => {});
   });
   
-  // Register commands
-  bot.command('start', handleStart);
+  // Register commands (kept as fallback)
+  bot.command('start', handleStartWithMenu);
   bot.command('help', handleHelp);
   bot.command('balance', handleBalance);
   bot.command('buy', handleBuy);
@@ -63,6 +63,17 @@ export async function startBot(): Promise<Telegraf> {
   bot.command('settings', handleSettings);
   bot.command('tp', handleTp);
   bot.command('sl', handleSl);
+  bot.command('menu', handleMenuCommand);
+  
+  // Register callback query handlers for inline buttons
+  bot.action(CALLBACK.CHECK_PNL, handleCheckPnlButton);
+  bot.action(CALLBACK.MY_WALLET, handleMyWalletButton);
+  bot.action(CALLBACK.ADD_WALLET, handleAddWalletButton);
+  bot.action(CALLBACK.MY_POSITIONS, handleMyPositionsButton);
+  bot.action(CALLBACK.SETTINGS, handleSettingsButton);
+  bot.action(CALLBACK.EXPORT_KEY, handleExportKeyButton);
+  bot.action(CALLBACK.REMOVE_WALLET, handleRemoveWalletButton);
+  bot.action(CALLBACK.BACK_MAIN, handleBackMainButton);
   
   // Handle text messages (for PIN confirmation during withdrawal)
   bot.on('text', async (ctx) => {
