@@ -38,6 +38,23 @@ import { isValidSolanaAddress } from '../wallet';
 let bot: Telegraf | null = null;
 
 /**
+ * Handle /start command with menu
+ */
+async function handleStartWithMenu(ctx: Context): Promise<void> {
+  // First run original start logic
+  await handleStart(ctx);
+  // Then show main menu
+  await sendMainMenu(ctx);
+}
+
+/**
+ * Handle /menu command
+ */
+async function handleMenuCommand(ctx: Context): Promise<void> {
+  await sendMainMenu(ctx);
+}
+
+/**
  * Initialize and start the bot
  */
 export async function startBot(): Promise<Telegraf> {
