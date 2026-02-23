@@ -1,10 +1,81 @@
 import { Context } from 'telegraf';
-import { findUserByTelegramId, getOpenTrades, getTradeByToken } from '../../database';
+import { findUserByTelegramId, getOpenTrades, getTradeByToken, hasActivePosition, createPosition } from '../../database';
 import { isValidSolanaAddress } from '../../wallet';
 import { getTokenData } from '../../services';
 import { calculateEntryScore, formatScoreMessage } from '../../scoring';
 import { generatePnlCard } from '../../utils';
 import { formatSol } from '../../utils';
+
+/**
+ * Handle CA paste - record position entry (NO image generation)
+ */
+export async function handleRecordPosition(ctx: Context, tokenAddress: string): Promise<void> {
+  const telegramId = ctx.from?.id.toString();
+  if (!telegramId) return;
+  
+  try {
+    const user = await findUserByTelegramId(telegramId);
+    if (!user) {
+      await ctx.reply('Not registered. Run /start first.');
+      return;
+    }
+    
+    // Check if position already exists
+    const existingPosition = await hasActivePosition(user.id, tokenAddress);
+    if (existingPosition) {
+      await ctx.reply(`Position already active for this token.\n\nUse /pnl ${tokenAddress.slice(0, 8)}... to check performance.`);
+      return;
+    }
+    
+    // Fetch current token data for entry price
+    const tokenData = await getTokenData(tokenAddress);
+    
+    if (!tokenData) {
+      await ctx.reply('Unable to fetch token data. Token may be too new or have no liquidity.');
+      return;
+    }
+    
+    const entryPrice = parseFloat(tokenData.priceNative || '0');
+    
+    if (entryPrice <= 0) {
+      await ctx.reply('Unable to fetch current price. Try again later.');
+      return;
+    }
+    
+    // Record position in database
+    await createPosition(user.id, tokenAddress, entryPrice);
+    
+    // Format time
+    const entryTime = new Date();
+    const formattedTime = entryTime.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    const symbol = tokenData.baseToken?.symbol || 'Unknown';
+    const priceDisplay = entryPrice < 0.00001 
+      ? entryPrice.toExponential(4) 
+      : entryPrice < 0.01 
+        ? entryPrice.toFixed(8) 
+        : entryPrice.toFixed(6);
+    
+    // Text confirmation only - NO image
+    await ctx.reply(`Position recorded
+
+Token: ${symbol}
+Entry Price: ${priceDisplay}
+Time: ${formattedTime}
+
+Use /pnl ${tokenAddress} to check performance.`);
+    
+  } catch (error) {
+    console.error('[Bot] Record position error:', error);
+    await ctx.reply('Failed to record position. Try again.');
+  }
+}
 
 /**
  * Handle /scan command
