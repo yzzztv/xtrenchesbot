@@ -253,7 +253,7 @@ export async function handleAddWalletButton(ctx: Context): Promise<void> {
     const user = await findUserByTelegramId(telegramId);
     if (!user) {
       await ctx.editMessageText(
-        'Not registered.',
+        notRegisteredMessage(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -263,7 +263,7 @@ export async function handleAddWalletButton(ctx: Context): Promise<void> {
     const canAdd = await canAddWallet(user.id);
     if (!canAdd) {
       await ctx.editMessageText(
-        `Wallet limit reached (${MAX_WALLETS_PER_USER} max).\n\nRemove a wallet to add a new one.`,
+        walletLimitMessage(MAX_WALLETS_PER_USER),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -279,7 +279,7 @@ export async function handleAddWalletButton(ctx: Context): Promise<void> {
     
   } catch (error) {
     console.error('[WalletManager] Add wallet error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -300,7 +300,7 @@ export async function handleAddWalletConfirm(ctx: Context): Promise<void> {
     const canAdd = await canAddWallet(user.id);
     if (!canAdd) {
       await ctx.editMessageText(
-        'Wallet limit reached.',
+        walletLimitMessage(MAX_WALLETS_PER_USER),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -313,12 +313,7 @@ export async function handleAddWalletConfirm(ctx: Context): Promise<void> {
     const newWallet = await createWallet(user.id, publicKey, encryptedPrivateKey, false);
     
     await ctx.editMessageText(
-      `New wallet created.
-
-Address: \`${publicKey}\`
-Short: ${maskPublicKey(publicKey)}
-
-Wallet is NOT active. Set it as active to use for trading.`,
+      walletCreatedMessage(publicKey, maskAddress(publicKey)),
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
