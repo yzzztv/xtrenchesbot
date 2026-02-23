@@ -1,8 +1,14 @@
 import { Context, Markup } from 'telegraf';
 import { findUserByTelegramId, getOpenTrades } from '../database';
 import { getTokenData } from '../services';
-
-const BOT_NAME = 'XTRENCHESBOT';
+import {
+  mainMenuMessage,
+  notRegisteredMessage,
+  noPositionsMessage,
+  positionsListMessage,
+  settingsMessage,
+  errorMessage,
+} from './messageTemplates';
 
 // Callback data constants
 export const CALLBACK = {
@@ -48,10 +54,7 @@ export function getMainMenuKeyboard() {
  * Get main menu message text
  */
 export function getMainMenuText(): string {
-  return `Welcome to ${BOT_NAME}
-Smart trading. Clean tracking.
-
-Choose an option below:`;
+  return mainMenuMessage();
 }
 
 /**
@@ -94,7 +97,7 @@ export async function handleCheckPnlButton(ctx: Context): Promise<void> {
     );
   } catch (error) {
     console.error('[Menu] Check PNL button error:', error);
-    await ctx.answerCbQuery('Something went wrong. Try again.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -111,7 +114,7 @@ export async function handleMyPositionsButton(ctx: Context): Promise<void> {
     const user = await findUserByTelegramId(telegramId);
     if (!user) {
       await ctx.editMessageText(
-        'Not registered. Use /start to register first.',
+        notRegisteredMessage(),
         Markup.inlineKeyboard([
           [Markup.button.callback('Back', CALLBACK.BACK_MAIN)],
         ])
@@ -123,7 +126,7 @@ export async function handleMyPositionsButton(ctx: Context): Promise<void> {
     
     if (trades.length === 0) {
       await ctx.editMessageText(
-        'No active positions yet.\n\nPaste a contract address to record an entry.',
+        noPositionsMessage(),
         Markup.inlineKeyboard([
           [Markup.button.callback('Back', CALLBACK.BACK_MAIN)],
         ])
@@ -132,7 +135,7 @@ export async function handleMyPositionsButton(ctx: Context): Promise<void> {
     }
     
     // Build positions list
-    const positionLines: string[] = ['Your Active Positions:', ''];
+    const positions: Array<{ symbol: string; address: string }> = [];
     
     for (const trade of trades) {
       let symbol = 'Unknown';
@@ -142,14 +145,11 @@ export async function handleMyPositionsButton(ctx: Context): Promise<void> {
       } catch {
         // Token data fetch failed
       }
-      positionLines.push(`• ${symbol} (${trade.token_address.slice(0, 6)}...)`);
+      positions.push({ symbol, address: trade.token_address });
     }
     
-    positionLines.push('');
-    positionLines.push(`Total: ${trades.length} position(s)`);
-    
     await ctx.editMessageText(
-      positionLines.join('\n'),
+      positionsListMessage(positions),
       Markup.inlineKeyboard([
         [Markup.button.callback('Check PNL', CALLBACK.CHECK_PNL)],
         [Markup.button.callback('Back', CALLBACK.BACK_MAIN)],
@@ -157,7 +157,7 @@ export async function handleMyPositionsButton(ctx: Context): Promise<void> {
     );
   } catch (error) {
     console.error('[Menu] My Positions button error:', error);
-    await ctx.answerCbQuery('Something went wrong. Try again.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -174,7 +174,7 @@ export async function handleSettingsButton(ctx: Context): Promise<void> {
     const user = await findUserByTelegramId(telegramId);
     if (!user) {
       await ctx.editMessageText(
-        'Not registered. Use /start to register first.',
+        notRegisteredMessage(),
         Markup.inlineKeyboard([
           [Markup.button.callback('Back', CALLBACK.BACK_MAIN)],
         ])
@@ -182,26 +182,15 @@ export async function handleSettingsButton(ctx: Context): Promise<void> {
       return;
     }
     
-    const settingsText = `Settings
-
-Auto Take Profit: ${user.auto_tp_enabled ? 'ON' : 'OFF'}
-Auto Stop Loss: ${user.auto_sl_enabled ? 'ON' : 'OFF'}
-Auto Buy: ${user.autobuy_enabled ? 'ON' : 'OFF'}
-
-Use commands to toggle:
-/tp on|off - Auto TP
-/sl on|off - Auto SL
-/setpin 1234 - Set PIN`;
-
     await ctx.editMessageText(
-      settingsText,
+      settingsMessage(user.auto_tp_enabled, user.auto_sl_enabled, user.autobuy_enabled),
       Markup.inlineKeyboard([
         [Markup.button.callback('Back', CALLBACK.BACK_MAIN)],
       ])
     );
   } catch (error) {
     console.error('[Menu] Settings button error:', error);
-    await ctx.answerCbQuery('Something went wrong. Try again.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -220,6 +209,6 @@ export async function handleBackMainButton(ctx: Context): Promise<void> {
     await editToMainMenu(ctx);
   } catch (error) {
     console.error('[Menu] Back button error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
