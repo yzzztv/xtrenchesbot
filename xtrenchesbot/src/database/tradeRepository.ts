@@ -112,3 +112,33 @@ export async function getTradeById(tradeId: number): Promise<Trade | null> {
   );
   return result.rows[0] || null;
 }
+
+/**
+ * Create a position record (for CA paste - no SOL amount, just entry tracking)
+ */
+export async function createPosition(
+  userId: number,
+  tokenAddress: string,
+  entryPrice: number
+): Promise<Trade> {
+  const pool = getPool();
+  const result = await pool.query<Trade>(
+    `INSERT INTO trades (user_id, token_address, entry_price, amount_sol, token_amount, status)
+     VALUES ($1, $2, $3, 0, 0, 'open')
+     RETURNING *`,
+    [userId, tokenAddress, entryPrice]
+  );
+  return result.rows[0];
+}
+
+/**
+ * Check if active position exists for user + token
+ */
+export async function hasActivePosition(userId: number, tokenAddress: string): Promise<boolean> {
+  const pool = getPool();
+  const result = await pool.query(
+    'SELECT 1 FROM trades WHERE user_id = $1 AND token_address = $2 AND status = $3 LIMIT 1',
+    [userId, tokenAddress, 'open']
+  );
+  return result.rows.length > 0;
+}
