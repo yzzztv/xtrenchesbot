@@ -325,7 +325,7 @@ export async function handleAddWalletConfirm(ctx: Context): Promise<void> {
     
   } catch (error) {
     console.error('[WalletManager] Add confirm error:', error);
-    await ctx.answerCbQuery('Failed to create wallet.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -347,19 +347,19 @@ export async function handleSetActiveWallet(ctx: Context, walletId: string): Pro
     if (success) {
       const wallet = await getWalletById(walletId, user.id);
       await ctx.editMessageText(
-        `Wallet switched successfully.\n\nActive: ${maskPublicKey(wallet?.public_key || '')}`,
+        walletSwitchedMessage(maskAddress(wallet?.public_key || '')),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
     } else {
       await ctx.editMessageText(
-        'Failed to switch wallet.',
+        errorMessage('Failed to switch wallet.'),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
     }
     
   } catch (error) {
     console.error('[WalletManager] Set active error:', error);
-    await ctx.answerCbQuery('Failed to switch wallet.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -380,7 +380,7 @@ export async function handleRemoveWalletButton(ctx: Context): Promise<void> {
     
     if (wallets.length === 0) {
       await ctx.editMessageText(
-        'No wallets to remove.',
+        errorMessage('No wallets to remove.'),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -388,7 +388,7 @@ export async function handleRemoveWalletButton(ctx: Context): Promise<void> {
     
     if (wallets.length === 1) {
       await ctx.editMessageText(
-        'Cannot remove your only wallet.\n\nAdd another wallet first.',
+        walletCannotRemoveLast(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -396,7 +396,7 @@ export async function handleRemoveWalletButton(ctx: Context): Promise<void> {
     
     // Build wallet list buttons
     const walletButtons = wallets.map((w, i) => {
-      const label = `${maskPublicKey(w.public_key)}${w.is_active ? ' (Active)' : ''}`;
+      const label = `${maskAddress(w.public_key)}${w.is_active ? ' (Active)' : ''}`;
       return [Markup.button.callback(label, `${WALLET_CALLBACK.REMOVE_SELECT}${w.id}`)];
     });
     
@@ -409,7 +409,7 @@ export async function handleRemoveWalletButton(ctx: Context): Promise<void> {
     
   } catch (error) {
     console.error('[WalletManager] Remove wallet error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
