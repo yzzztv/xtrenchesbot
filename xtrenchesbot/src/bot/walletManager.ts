@@ -68,14 +68,6 @@ export function clearExportPinState(telegramId: string): void {
 }
 
 /**
- * Mask public key for display
- */
-function maskPublicKey(publicKey: string): string {
-  if (publicKey.length < 12) return publicKey;
-  return `${publicKey.slice(0, 4)}...${publicKey.slice(-4)}`;
-}
-
-/**
  * Get wallet manager keyboard
  */
 function getWalletManagerKeyboard() {
