@@ -1,10 +1,10 @@
 import { Context } from 'telegraf';
-import { findUserByTelegramId, getOpenTrades } from '../database';
-import { isValidSolanaAddress } from '../wallet';
-import { getTokenData } from '../services';
-import { calculateEntryScore, formatScoreMessage } from '../scoring';
-import { generatePnlCard } from '../utils';
-import { formatSol } from '../utils';
+import { findUserByTelegramId, getOpenTrades } from '../../database';
+import { isValidSolanaAddress } from '../../wallet';
+import { getTokenData } from '../../services';
+import { calculateEntryScore, formatScoreMessage } from '../../scoring';
+import { generatePnlCard } from '../../utils';
+import { formatSol } from '../../utils';
 
 /**
  * Handle /scan command

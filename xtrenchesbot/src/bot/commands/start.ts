@@ -1,7 +1,7 @@
 import { Context } from 'telegraf';
-import { CONFIG } from '../config';
-import { findUserByTelegramId, createUser, getUserCount } from '../database';
-import { generateWallet, getBalance } from '../wallet';
+import { CONFIG } from '../../config';
+import { findUserByTelegramId, createUser, getUserCount } from '../../database';
+import { generateWallet, getBalance } from '../../wallet';
 
 /**
  * Handle /start command

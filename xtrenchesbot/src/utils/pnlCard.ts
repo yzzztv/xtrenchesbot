@@ -65,7 +65,7 @@ export async function generatePnlCard(data: PnlCardData): Promise<Buffer> {
     y: number,
     fontSize: number,
     color: string = '#FFFFFF',
-    align: CanvasTextAlign = 'left'
+    align: 'left' | 'center' | 'right' = 'left'
   ) => {
     ctx.font = `bold ${fontSize}px Arial, sans-serif`;
     ctx.textAlign = align;

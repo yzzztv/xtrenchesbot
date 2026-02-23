@@ -1,6 +1,6 @@
 import { Context } from 'telegraf';
-import { CONFIG } from '../config';
-import { findUserByTelegramId, updateUserSettings } from '../database';
+import { CONFIG } from '../../config';
+import { findUserByTelegramId, updateUserSettings } from '../../database';
 
 /**
  * Handle /settings command

@@ -1,9 +1,9 @@
 import { Context } from 'telegraf';
-import { CONFIG } from '../config';
-import { findUserByTelegramId, updateUserPin } from '../database';
-import { isValidSolanaAddress, getBalance, transferSol } from '../wallet';
-import { hashPin, verifyPin, isValidPin } from '../security';
-import { formatSol } from '../utils';
+import { CONFIG } from '../../config';
+import { findUserByTelegramId, updateUserPin } from '../../database';
+import { isValidSolanaAddress, getBalance, transferSol } from '../../wallet';
+import { hashPin, verifyPin, isValidPin } from '../../security';
+import { formatSol } from '../../utils';
 
 /**
  * Handle /withdraw command
