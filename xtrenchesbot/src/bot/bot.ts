@@ -18,6 +18,20 @@ import {
   hasPendingWithdrawal,
   handleRecordPosition
 } from './commands';
+import {
+  CALLBACK,
+  sendMainMenu,
+  handleCheckPnlButton,
+  handleMyWalletButton,
+  handleAddWalletButton,
+  handleMyPositionsButton,
+  handleSettingsButton,
+  handleExportKeyButton,
+  handleRemoveWalletButton,
+  handleBackMainButton,
+  isAwaitingPnlInput,
+  clearPnlInputState,
+} from './menu';
 import { findUserByTelegramId } from '../database';
 import { isValidSolanaAddress } from '../wallet';
 
