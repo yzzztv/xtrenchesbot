@@ -206,56 +206,6 @@ Use commands to toggle:
 }
 
 /**
- * Handle Export Private Key button
- */
-export async function handleExportKeyButton(ctx: Context): Promise<void> {
-  try {
-    await ctx.answerCbQuery();
-    
-    await ctx.editMessageText(
-      `Export Private Key
-
-For security, private key export is disabled in UI.
-
-Use command: /exportkey (requires PIN)
-
-Never share your private key.`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback('Back', CALLBACK.MY_WALLET)],
-      ])
-    );
-  } catch (error) {
-    console.error('[Menu] Export Key button error:', error);
-    await ctx.answerCbQuery('Something went wrong. Try again.');
-  }
-}
-
-/**
- * Handle Remove Wallet button
- */
-export async function handleRemoveWalletButton(ctx: Context): Promise<void> {
-  try {
-    await ctx.answerCbQuery();
-    
-    await ctx.editMessageText(
-      `Remove Wallet
-
-Wallet removal is permanent.
-All positions and history will be lost.
-
-This feature is currently disabled for safety.
-Contact support if needed.`,
-      Markup.inlineKeyboard([
-        [Markup.button.callback('Back', CALLBACK.MY_WALLET)],
-      ])
-    );
-  } catch (error) {
-    console.error('[Menu] Remove Wallet button error:', error);
-    await ctx.answerCbQuery('Something went wrong. Try again.');
-  }
-}
-
-/**
  * Handle Back to Main button
  */
 export async function handleBackMainButton(ctx: Context): Promise<void> {
