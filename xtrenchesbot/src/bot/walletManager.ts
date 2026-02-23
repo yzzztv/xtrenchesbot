@@ -124,7 +124,7 @@ export async function handleWalletManagerButton(ctx: Context): Promise<void> {
     
   } catch (error) {
     console.error('[WalletManager] Error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -141,7 +141,7 @@ export async function handleExportKeyButton(ctx: Context): Promise<void> {
     const user = await findUserByTelegramId(telegramId);
     if (!user) {
       await ctx.editMessageText(
-        'Not registered.',
+        notRegisteredMessage(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -149,7 +149,7 @@ export async function handleExportKeyButton(ctx: Context): Promise<void> {
     
     if (!user.pin_hash) {
       await ctx.editMessageText(
-        'No PIN set.\n\nUse /setpin 1234 to set a PIN first.',
+        walletNoPinSet(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', WALLET_CALLBACK.MANAGER)]])
       );
       return;
@@ -159,13 +159,13 @@ export async function handleExportKeyButton(ctx: Context): Promise<void> {
     awaitingExportPin.add(telegramId);
     
     await ctx.editMessageText(
-      'Enter your 4-digit PIN to export private key:\n\nType your PIN below or "cancel" to abort.',
+      walletExportPinPrompt(),
       Markup.inlineKeyboard([[Markup.button.callback('Cancel', WALLET_CALLBACK.MANAGER)]])
     );
     
   } catch (error) {
     console.error('[WalletManager] Export key error:', error);
-    await ctx.answerCbQuery('Something went wrong.');
+    await ctx.answerCbQuery(errorMessage());
   }
 }
 
@@ -188,14 +188,14 @@ export async function processExportPin(ctx: Context, pin: string): Promise<boole
   try {
     const user = await findUserByTelegramId(telegramId);
     if (!user || !user.pin_hash) {
-      await ctx.reply('Error: User or PIN not found.');
+      await ctx.reply(errorMessage('User or PIN not found.'));
       return true;
     }
     
     // Verify PIN
     const pinValid = await verifyPin(pin, user.pin_hash);
     if (!pinValid) {
-      await ctx.reply('Incorrect PIN.');
+      await ctx.reply(pinIncorrect());
       return true;
     }
     
@@ -208,16 +208,15 @@ export async function processExportPin(ctx: Context, pin: string): Promise<boole
     try {
       privateKey = decryptPrivateKey(encryptedKey);
     } catch {
-      await ctx.reply('Failed to decrypt key. Contact support.');
+      await ctx.reply(errorMessage('Failed to decrypt key.'));
       return true;
     }
     
     // Send private key with warning
     const keyMessage = await ctx.reply(
-      `SECURITY WARNING
-Never share this key with anyone.
-This message will be deleted.
-
+      walletExportSuccess(privateKey),
+      { parse_mode: 'Markdown' }
+    );
 Your Private Key:
 \`${privateKey}\`
 
