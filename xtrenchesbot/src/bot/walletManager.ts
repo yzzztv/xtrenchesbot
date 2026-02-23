@@ -92,7 +92,7 @@ export async function handleWalletManagerButton(ctx: Context): Promise<void> {
     const user = await findUserByTelegramId(telegramId);
     if (!user) {
       await ctx.editMessageText(
-        'Not registered. Use /start first.',
+        notRegisteredMessage(),
         Markup.inlineKeyboard([[Markup.button.callback('Back', 'menu_back_main')]])
       );
       return;
@@ -115,17 +115,12 @@ export async function handleWalletManagerButton(ctx: Context): Promise<void> {
       }
     }
     
-    const activeAddress = activeWallet ? maskPublicKey(activeWallet.public_key) : 'None';
-    
-    const text = `Wallet Manager
+    const activeAddress = activeWallet ? maskAddress(activeWallet.public_key) : 'None';
 
-Active Wallet: ${activeAddress}
-Balance: ${balance.toFixed(4)} SOL
-Total Wallets: ${wallets.length}/${MAX_WALLETS_PER_USER}
-
-Select an option:`;
-
-    await ctx.editMessageText(text, getWalletManagerKeyboard());
+    await ctx.editMessageText(
+      walletManagerMessage(activeAddress, balance, wallets.length, MAX_WALLETS_PER_USER),
+      getWalletManagerKeyboard()
+    );
     
   } catch (error) {
     console.error('[WalletManager] Error:', error);
