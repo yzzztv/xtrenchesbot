@@ -122,7 +122,7 @@ export async function startBot(): Promise<Telegraf> {
     await handleRemoveWalletConfirm(ctx, walletId);
   });
   
-  // Handle text messages (for PIN confirmation during withdrawal and PNL input)
+  // Handle text messages (for PIN confirmation during withdrawal, export, and PNL input)
   bot.on('text', async (ctx) => {
     const telegramId = ctx.from?.id.toString();
     if (!telegramId) return;
@@ -135,6 +135,12 @@ export async function startBot(): Promise<Telegraf> {
     // Check for pending withdrawal
     if (hasPendingWithdrawal(telegramId)) {
       await processWithdrawalPin(ctx, text);
+      return;
+    }
+    
+    // Check for pending export PIN
+    if (isAwaitingExportPin(telegramId)) {
+      await processExportPin(ctx, text);
       return;
     }
     
