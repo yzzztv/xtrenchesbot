@@ -95,13 +95,32 @@ export async function startBot(): Promise<Telegraf> {
   
   // Register callback query handlers for inline buttons
   bot.action(CALLBACK.CHECK_PNL, handleCheckPnlButton);
-  bot.action(CALLBACK.MY_WALLET, handleMyWalletButton);
-  bot.action(CALLBACK.ADD_WALLET, handleAddWalletButton);
+  bot.action(CALLBACK.MY_WALLET, handleWalletManagerButton);
   bot.action(CALLBACK.MY_POSITIONS, handleMyPositionsButton);
   bot.action(CALLBACK.SETTINGS, handleSettingsButton);
-  bot.action(CALLBACK.EXPORT_KEY, handleExportKeyButton);
-  bot.action(CALLBACK.REMOVE_WALLET, handleRemoveWalletButton);
   bot.action(CALLBACK.BACK_MAIN, handleBackMainButton);
+  
+  // Wallet manager callbacks
+  bot.action(WALLET_CALLBACK.MANAGER, handleWalletManagerButton);
+  bot.action(WALLET_CALLBACK.EXPORT_KEY, handleExportKeyButton);
+  bot.action(WALLET_CALLBACK.ADD_WALLET, handleAddWalletButton);
+  bot.action(WALLET_CALLBACK.ADD_CONFIRM, handleAddWalletConfirm);
+  bot.action(WALLET_CALLBACK.REMOVE_WALLET, handleRemoveWalletButton);
+  bot.action(WALLET_CALLBACK.REMOVE_CANCEL, handleRemoveCancel);
+  
+  // Dynamic wallet callbacks (with ID suffix)
+  bot.action(/^wallet_set_active_(.+)$/, async (ctx) => {
+    const walletId = ctx.match[1];
+    await handleSetActiveWallet(ctx, walletId);
+  });
+  bot.action(/^wallet_remove_select_(.+)$/, async (ctx) => {
+    const walletId = ctx.match[1];
+    await handleRemoveWalletSelect(ctx, walletId);
+  });
+  bot.action(/^wallet_remove_confirm_(.+)$/, async (ctx) => {
+    const walletId = ctx.match[1];
+    await handleRemoveWalletConfirm(ctx, walletId);
+  });
   
   // Handle text messages (for PIN confirmation during withdrawal and PNL input)
   bot.on('text', async (ctx) => {
