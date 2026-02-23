@@ -75,7 +75,7 @@ export async function startBot(): Promise<Telegraf> {
   bot.action(CALLBACK.REMOVE_WALLET, handleRemoveWalletButton);
   bot.action(CALLBACK.BACK_MAIN, handleBackMainButton);
   
-  // Handle text messages (for PIN confirmation during withdrawal)
+  // Handle text messages (for PIN confirmation during withdrawal and PNL input)
   bot.on('text', async (ctx) => {
     const telegramId = ctx.from?.id.toString();
     if (!telegramId) return;
@@ -88,6 +88,22 @@ export async function startBot(): Promise<Telegraf> {
     // Check for pending withdrawal
     if (hasPendingWithdrawal(telegramId)) {
       await processWithdrawalPin(ctx, text);
+      return;
+    }
+    
+    // Check if awaiting PNL CA input from button flow
+    if (isAwaitingPnlInput(telegramId)) {
+      clearPnlInputState(telegramId);
+      
+      // Validate as Solana address
+      if (text.length >= 32 && text.length <= 64 && !text.includes(' ') && isValidSolanaAddress(text)) {
+        // Call PNL handler with constructed context
+        const pnlCtx = ctx as any;
+        pnlCtx.message.text = `/pnl ${text}`;
+        await handlePnl(pnlCtx);
+      } else {
+        await ctx.reply('Invalid contract address. Try again or use /menu to go back.');
+      }
       return;
     }
     
